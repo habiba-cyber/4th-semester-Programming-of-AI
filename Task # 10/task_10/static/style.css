@@ -1,0 +1,39 @@
+body {
+    margin: 0;
+    font-family: Arial;
+    background: linear-gradient(135deg, #141e30, #243b55);
+    color: white;
+    text-align: center;
+}
+
+.card {
+    margin-top: 100px;
+    padding: 30px;
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
+    background: rgba(255,255,255,0.08);
+    border-radius: 15px;
+}
+
+input {
+    padding: 10px;
+    width: 70%;
+    border: none;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.result {
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+}
