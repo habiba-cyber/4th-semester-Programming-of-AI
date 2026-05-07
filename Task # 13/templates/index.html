@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Smart Document Scanner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:        #0f172a;
+            --surface:   rgba(30, 41, 59, 0.75);
+            --border:    rgba(255, 255, 255, 0.08);
+            --primary:   #3b82f6;
+            --primary-h: #2563eb;
+            --accent:    #a78bfa;
+            --text:      #f8fafc;
+            --muted:     #94a3b8;
+            --success-bg: rgba(16, 185, 129, 0.12);
+            --success-b:  rgba(16, 185, 129, 0.3);
+            --success-c:  #6ee7b7;
+            --error-bg:  rgba(239, 68, 68, 0.12);
+            --error-b:   rgba(239, 68, 68, 0.3);
+            --error-c:   #fca5a5;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2.5rem 1rem;
+        }
+
+        /* ─── HEADER ─────────────────── */
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            animation: fadeIn 0.7s ease;
+        }
+        .header h1 {
+            font-size: 2.4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.4rem;
+        }
+        .header p { color: var(--muted); font-size: 1rem; }
+
+        /* ─── CARDS ──────────────────── */
+        .card {
+            width: 100%;
+            max-width: 760px;
+            background: var(--surface);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.8rem 2rem;
+            margin-bottom: 1.5rem;
+            animation: slideUp 0.5s ease;
+        }
+        .card h2 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1.2rem;
+        }
+
+        /* ─── ALERT ──────────────────── */
+        .alert {
+            width: 100%;
+            max-width: 760px;
+            padding: 0.9rem 1.2rem;
+            border-radius: 10px;
+            font-weight: 500;
+            margin-bottom: 1.2rem;
+            animation: fadeIn 0.3s ease;
+        }
+        .alert-success { background: var(--success-bg); border: 1px solid var(--success-b); color: var(--success-c); }
+        .alert-error   { background: var(--error-bg);   border: 1px solid var(--error-b);   color: var(--error-c); }
+
+        /* ─── FORM ELEMENTS ──────────── */
+        label { display: block; font-size: 0.88rem; color: var(--muted); margin-bottom: 0.5rem; }
+
+        input[type="file"],
+        input[type="text"] {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.95rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            margin-bottom: 1rem;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.18);
+        }
+
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--primary);
+            color: #fff;
+            font-size: 0.97rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+        }
+        button:hover  { background: var(--primary-h); transform: translateY(-1px); }
+        button:active { transform: translateY(0); }
+        button:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+        /* ─── RESULTS ────────────────── */
+        #ai-answer {
+            background: rgba(167,139,250,0.08);
+            border: 1px solid rgba(167,139,250,0.25);
+            border-radius: 10px;
+            padding: 1.1rem 1.2rem;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            margin-bottom: 1.2rem;
+            display: none;
+        }
+
+        .chunk-label {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--muted);
+            margin: 1rem 0 0.5rem;
+        }
+        .chunk-item {
+            background: rgba(15, 23, 42, 0.55);
+            border-left: 3px solid var(--primary);
+            padding: 0.9rem 1rem;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 0.6rem;
+            font-size: 0.91rem;
+            line-height: 1.6;
+            color: var(--muted);
+            transition: transform 0.2s;
+        }
+        .chunk-item:hover { transform: translateX(4px); }
+
+        /* loading spinner */
+        .spinner {
+            display: inline-block;
+            width: 14px; height: 14px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        /* ─── ANIMATIONS ─────────────── */
+        @keyframes fadeIn  { from { opacity: 0 }          to { opacity: 1 } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(18px) } to { opacity: 1; transform: translateY(0) } }
+        @keyframes spin    { to { transform: rotate(360deg) } }
+
+        /* scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <h1>📄 AI Smart Document Scanner</h1>
+        <p>Upload a PDF or Image → ask questions → get AI-powered answers</p>
+    </header>
+
+    <!-- one-time message from redirect -->
+    {% if message %}
+    <div class="alert alert-{{ msg_type }}">{{ message }}</div>
+    {% endif %}
+
+    <!-- ── ROUTE 2: POST /upload ──────────────────────────── -->
+    <div class="card">
+        <h2>Step 1 — Upload Document</h2>
+        <form action="/upload" method="POST" enctype="multipart/form-data">
+            <label for="file">Select a PDF or Image (PNG / JPG / JPEG)</label>
+            <input type="file" id="file" name="file" accept=".pdf,.png,.jpg,.jpeg" required>
+            <button type="submit">Upload & Process</button>
+        </form>
+    </div>
+
+    <!-- ── ROUTE 3: POST /search (via fetch, returns JSON) ── -->
+    {% if has_index %}
+    <div class="card">
+        <h2>Step 2 — Ask a Question</h2>
+        <form id="search-form">
+            <label for="query">Type your question about the document</label>
+            <input type="text" id="query" name="query"
+                   placeholder="e.g. What is the main topic?" required>
+            <button type="submit" id="search-btn">Search with AI</button>
+        </form>
+
+        <!-- AI answer box (shown after response) -->
+        <div id="ai-answer"></div>
+
+        <!-- Matched chunks -->
+        <div id="chunks-container"></div>
+    </div>
+    {% endif %}
+
+    <script>
+        const form        = document.getElementById('search-form');
+        const btn         = document.getElementById('search-btn');
+        const answerBox   = document.getElementById('ai-answer');
+        const chunksBox   = document.getElementById('chunks-container');
+
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                // Show loading state
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner"></span> Searching…';
+                answerBox.style.display = 'none';
+                chunksBox.innerHTML = '';
+
+                const query = document.getElementById('query').value;
+                const data  = new FormData();
+                data.append('query', query);
+
+                try {
+                    // POST /search — returns JSON
+                    const res  = await fetch('/search', { method: 'POST', body: data });
+                    const json = await res.json();
+
+                    if (json.error) {
+                        answerBox.style.display = 'block';
+                        answerBox.style.background = 'rgba(239,68,68,0.1)';
+                        answerBox.style.borderColor = 'rgba(239,68,68,0.3)';
+                        answerBox.style.color = '#fca5a5';
+                        answerBox.textContent = '⚠️ ' + json.error;
+                    } else {
+                        // Show Gemini's answer
+                        answerBox.style.display = 'block';
+                        answerBox.style.background = '';
+                        answerBox.style.borderColor = '';
+                        answerBox.style.color = '#f8fafc';
+                        answerBox.textContent = json.answer;
+
+                        // Show matched chunks below
+                        let html = '<p class="chunk-label">📌 Source Chunks Used</p>';
+                        json.chunks.forEach((chunk, i) => {
+                            html += `<div class="chunk-item"><strong>Chunk ${i+1}:</strong> ${chunk}</div>`;
+                        });
+                        chunksBox.innerHTML = html;
+                    }
+                } catch (err) {
+                    answerBox.style.display = 'block';
+                    answerBox.textContent = '⚠️ Network error: ' + err.message;
+                }
+
+                btn.disabled = false;
+                btn.innerHTML = 'Search with AI';
+            });
+        }
+    </script>
+
+</body>
+</html>

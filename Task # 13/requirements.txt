@@ -1,0 +1,9 @@
+flask
+werkzeug
+pytesseract
+Pillow
+opencv-python
+faiss-cpu
+sentence-transformers
+pdfplumber
+google-genai
